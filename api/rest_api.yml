@@ -5,6 +5,7 @@ tags:
   - name: Posts
   - name: Reactions
   - name: Comments
+  - name: Attachments
 
 info:
   title: Social network for travelers API
@@ -32,6 +33,18 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: limit
+          in: query
+          description: The limit of records in the response
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: The offset of records in the response
+          required: false
+          schema:
+            type: integer
       responses:
         200:
           description: Ok
@@ -40,7 +53,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Post'
+                  $ref: '#/components/schemas/PostOutput'
         400:
           description: Bad Request
         500:
@@ -55,7 +68,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Post'
+              $ref: '#/components/schemas/PostInput'
       responses:
         200:
           description: Ok
@@ -89,7 +102,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Post'
+                $ref: '#/components/schemas/PostOutput'
         400:
           description: Bad Request
         404:
@@ -114,7 +127,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Post'
+              $ref: '#/components/schemas/PostInput'
       responses:
         200:
           description: Ok
@@ -157,6 +170,18 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/Location'
+        - name: limit
+          in: query
+          description: The limit of records in the response
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: The offset of records in the response
+          required: false
+          schema:
+            type: integer
       responses:
         200:
           description: Ok
@@ -166,6 +191,109 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Location'
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+  /posts/{postId}/attachments:
+    get:
+      summary: Get the list of post attachments
+      description: Method gets the list of reactions for the authenticated user for specific post
+      tags:
+        - Attachments
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: commentId
+          in: query
+          description: ID of the comment
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attachment'
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+    post:
+      summary: Creates a post attachment
+      description: Method creates an attachment for specific post
+      tags:
+        - Attachments
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: commentId
+          in: query
+          description: ID of the comment
+          required: false
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/octet-stream: {}
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+  /posts/{postId}/attachments/{id}:
+    delete:
+      summary: Deletes the attachment
+      description: Method deletes an attachment for specific post
+      tags:
+        - Attachments
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          description: ID of the attachment
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
         400:
           description: Bad Request
         404:
@@ -194,6 +322,18 @@ paths:
           schema:
             type: number
             format: int64
+        - name: limit
+          in: query
+          description: The limit of records in the response
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: The offset of records in the response
+          required: false
+          schema:
+            type: integer
       responses:
         200:
           description: Ok
@@ -244,32 +384,6 @@ paths:
         500:
           description: Server error
   /reactions/{id}:
-    get:
-      summary: Get specific reaction
-      description: Method gets single reaction for the authenticated user
-      tags:
-        - Posts
-      parameters:
-        - name: id
-          in: path
-          description: ID of the reaction
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          description: Ok
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Reaction'
-        400:
-          description: Bad Request
-        404:
-          description: Not Found
-        500:
-          description: Server error
     delete:
       summary: Delete reaction
       description: Method deletes reaction
@@ -310,7 +424,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Comment'
+              $ref: '#/components/schemas/CommentInput'
       responses:
         200:
           description: Ok
@@ -339,6 +453,18 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: limit
+          in: query
+          description: The limit of records in the response
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: The offset of records in the response
+          required: false
+          schema:
+            type: integer
       responses:
         200:
           description: Ok
@@ -347,7 +473,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Comment'
+                  $ref: '#/components/schemas/CommentOutput'
         400:
           description: Bad Request
         404:
@@ -374,7 +500,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Comment'
+                $ref: '#/components/schemas/CommentOutput'
         400:
           description: Bad Request
         404:
@@ -399,7 +525,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Comment'
+              $ref: '#/components/schemas/CommentInput'
       responses:
         200:
           description: Ok
@@ -458,6 +584,44 @@ paths:
         500:
           description: Server error
   /users/{userId}/subscriptions:
+    get:
+      summary: Get user subscriptions
+      description: Method gets user subscription
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          description: The limit of records in the response
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: The offset of records in the response
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+        400:
+          description: Bad Request
+        500:
+          description: Server error
     post:
       summary: Subscribe to user
       description: Method creates subscription to user
@@ -517,7 +681,7 @@ components:
         email:
           type: string
           format: email
-    Post:
+    PostInput:
       type: object
       properties:
         id:
@@ -534,19 +698,23 @@ components:
           example: "The text of the post related to Red Square at Moscow"
         location:
           $ref: '#/components/schemas/Location'
-        images:
-          type: array
-          description: "The images associated with the post"
-          items:
-            type: string
-            description: "Base64 encoded image binary body"
-            example: "base64encodedimagebody"
       required:
         - id
         - userId
         - text
         - location
-        - images
+    PostOutput:
+      allOf:
+        - $ref: '#/components/schemas/PostInput'
+        - type: object
+          properties:
+            attachments:
+              type: array
+              description: "The images associated with the post"
+              items:
+                $ref: '#/components/schemas/Attachment'
+          required:
+            - attachments
     Reaction:
       type: object
       properties:
@@ -569,7 +737,7 @@ components:
           example: 123
         createdAt:
           type: string
-          format: date-string
+          format: date-time
           description: The date the reaction has been created at
       required:
         - id
@@ -577,7 +745,7 @@ components:
         - postId
         - reactionType
         - createdAt
-    Comment:
+    CommentInput:
       type: object
       properties:
         id:
@@ -598,15 +766,8 @@ components:
           example: "This is great"
         createdAt:
           type: string
-          format: date-string
+          format: date-time
           description: The date the reaction has been created at
-        images:
-          type: array
-          description: The images associated with the post
-          items:
-            type: string
-            description: Base64 encoded image binary body
-            example: "base64encodedimagebody"
       required:
         - id
         - userId
@@ -614,6 +775,18 @@ components:
         - text
         - createdAt
         - images
+    CommentOutput:
+      allOf:
+        - $ref: '#/components/schemas/CommentInput'
+        - type: object
+          properties:
+            attachments:
+              type: array
+              description: "The images associated with the comment"
+              items:
+                $ref: '#/components/schemas/Attachment'
+          required:
+            - attachments
     Location:
       type: array
       description: The location of the place associated with this post
@@ -622,3 +795,31 @@ components:
         format: double
         description: The coordinate
       example: [55.753544, 37.621202]
+    Subscription:
+      type: object
+      description: The user subscription to another user posts
+      properties:
+        following_user_id:
+          type: string
+          description: id of the following user
+          format: uuid
+        followed_user_id:
+          type: string
+          description: id of the followed user
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+          description: The date the reaction has been created at
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        contentType:
+          type: string
+          example: "image"
+        url:
+          type: string
+          format: url
