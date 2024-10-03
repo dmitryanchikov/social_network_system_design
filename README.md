@@ -89,6 +89,7 @@ System Design project for [System Design course](https://balun.courses/courses/s
      - read per comment ~ 1 MB:
        - text: 1 KB
        - userId: 8 B
+       - postId: 8 B
        - commentId: 8 B
        - createdAt: 8 B
        - image: 0.75 MB

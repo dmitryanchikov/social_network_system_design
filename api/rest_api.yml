@@ -1,0 +1,825 @@
+openapi: 3.0.0
+
+tags:
+  - name: Users
+  - name: Posts
+  - name: Reactions
+  - name: Comments
+  - name: Attachments
+
+info:
+  title: Social network for travelers API
+  description: Current API describes interaction with Social network
+  version: 1.0.0
+
+paths:
+  /posts:
+    get:
+      summary: Get posts
+      description: Method gets feed of posts for the authenticated user
+      tags:
+        - Posts
+      parameters:
+        - name: location
+          in: query
+          description: The location that relates to posts for filtering
+          required: false
+          schema:
+            $ref: '#/components/schemas/Location'
+        - name: userId
+          in: query
+          description: The user id for filtering posts by authority
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          description: The limit of records in the response
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: The offset of records in the response
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostOutput'
+        400:
+          description: Bad Request
+        500:
+          description: Server error
+    post:
+      summary: Create post
+      description: Method creates post for user
+      tags:
+        - Posts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostInput'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+                description: id of the post
+        400:
+          description: Bad Request
+        500:
+          description: Server error
+  /posts/{id}:
+    get:
+      summary: Get specific post
+      description: Method gets single post for the authenticated user
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostOutput'
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+    put:
+      summary: Update post
+      description: Method updates post for user
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostInput'
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad Request
+        422:
+          description: Validation exception
+        500:
+          description: Server error
+    delete:
+      summary: Delete post
+      description: Method deletes post
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad Request
+        500:
+          description: Server error
+  /locations:
+    get:
+      summary: Get locations for traveling
+      description: Method gets the list of popular posts
+      tags:
+        - Posts
+      parameters:
+        - name: target
+          in: query
+          description: The location for searching the most popular locations around
+          required: true
+          schema:
+            $ref: '#/components/schemas/Location'
+        - name: limit
+          in: query
+          description: The limit of records in the response
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: The offset of records in the response
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+  /posts/{postId}/attachments:
+    get:
+      summary: Get the list of post attachments
+      description: Method gets the list of reactions for the authenticated user for specific post
+      tags:
+        - Attachments
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: commentId
+          in: query
+          description: ID of the comment
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attachment'
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+    post:
+      summary: Creates a post attachment
+      description: Method creates an attachment for specific post
+      tags:
+        - Attachments
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: commentId
+          in: query
+          description: ID of the comment
+          required: false
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/octet-stream: {}
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+  /posts/{postId}/attachments/{id}:
+    delete:
+      summary: Deletes the attachment
+      description: Method deletes an attachment for specific post
+      tags:
+        - Attachments
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          description: ID of the attachment
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+
+  /posts/{postId}/reactions:
+    get:
+      summary: Get the list of post reactions
+      description: Method gets the list of reactions for the authenticated user for specific post
+      tags:
+        - Reactions
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post that needs to be marked with reaction
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: reactionType
+          in: query
+          description: The reaction type for filtering
+          required: false
+          schema:
+            type: number
+            format: int64
+        - name: limit
+          in: query
+          description: The limit of records in the response
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: The offset of records in the response
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reaction'
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+    post:
+      summary: Create reaction
+      description: Method creates reaction to post
+      tags:
+        - Reactions
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reaction'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+                description: id of the reaction
+        400:
+          description: Bad Request
+        422:
+          description: Validation exception
+        500:
+          description: Server error
+  /reactions/{id}:
+    delete:
+      summary: Delete reaction
+      description: Method deletes reaction
+      tags:
+        - Reactions
+      parameters:
+        - name: id
+          in: path
+          description: ID of the reaction
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad Request
+        500:
+          description: Server error
+
+  /posts/{postId}/comments:
+    post:
+      summary: Create comment
+      description: Method creates comment
+      tags:
+        - Comments
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentInput'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+                description: id of the comment
+        400:
+          description: Bad Request
+        422:
+          description: Validation exception
+        500:
+          description: Server error
+    get:
+      summary: Get the list of post comments
+      description: Method gets the list of comments for the authenticated user for specific post
+      tags:
+        - Comments
+      parameters:
+        - name: postId
+          in: path
+          description: ID of the post
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          description: The limit of records in the response
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: The offset of records in the response
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentOutput'
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+  /comment/{id}:
+    get:
+      summary: Get specific comment
+      description: Method gets single comment for the authenticated user
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          description: ID of the comment that needs to be fetched
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentOutput'
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+    put:
+      summary: Update comment
+      description: Method updates comment
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          description: ID of the comment
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentInput'
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad Request
+        422:
+          description: Validation exception
+        500:
+          description: Server error
+    delete:
+      summary: Delete comment
+      description: Method deletes comment
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          description: ID of the comment
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad Request
+        500:
+          description: Server error
+
+  /users/{userId}:
+    get:
+      summary: Get user info
+      description: Method gets the user information
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Bad Request
+        404:
+          description: Not Found
+        500:
+          description: Server error
+  /users/{userId}/subscriptions:
+    get:
+      summary: Get user subscriptions
+      description: Method gets user subscription
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          description: The limit of records in the response
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: The offset of records in the response
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+        400:
+          description: Bad Request
+        500:
+          description: Server error
+    post:
+      summary: Subscribe to user
+      description: Method creates subscription to user
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad Request
+        500:
+          description: Server error
+    delete:
+      summary: Unsubscribe to user
+      description: Method deletes subscription to user
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad Request
+        500:
+          description: Server error
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "id of the user"
+        about:
+          type: string
+          description: "Information about the user"
+        name:
+          type: string
+          description: "User name"
+        email:
+          type: string
+          format: email
+    PostInput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "id of the post"
+        userId:
+          type: string
+          description: "id of the post author"
+          format: uuid
+        text:
+          type: string
+          description: "The content of the post"
+          example: "The text of the post related to Red Square at Moscow"
+        location:
+          $ref: '#/components/schemas/Location'
+      required:
+        - id
+        - userId
+        - text
+        - location
+    PostOutput:
+      allOf:
+        - $ref: '#/components/schemas/PostInput'
+        - type: object
+          properties:
+            attachments:
+              type: array
+              description: "The images associated with the post"
+              items:
+                $ref: '#/components/schemas/Attachment'
+          required:
+            - attachments
+    Reaction:
+      type: object
+      properties:
+        id:
+          type: string
+          description: id of the reaction
+          format: uuid
+        userId:
+          type: string
+          description: id of the reaction author
+          format: uuid
+        postId:
+          type: string
+          description: id of the post
+          format: uuid
+        reactionType:
+          type: number
+          description: The reaction type represented as integer number
+          format: int64
+          example: 123
+        createdAt:
+          type: string
+          format: date-time
+          description: The date the reaction has been created at
+      required:
+        - id
+        - userId
+        - postId
+        - reactionType
+        - createdAt
+    CommentInput:
+      type: object
+      properties:
+        id:
+          type: string
+          description: id of the comment
+          format: uuid
+        userId:
+          type: string
+          description: id of the comment author
+          format: uuid
+        postId:
+          type: string
+          description: id of the post
+          format: uuid
+        text:
+          type: string
+          description: The string text of the comment
+          example: "This is great"
+        createdAt:
+          type: string
+          format: date-time
+          description: The date the reaction has been created at
+      required:
+        - id
+        - userId
+        - postId
+        - text
+        - createdAt
+        - images
+    CommentOutput:
+      allOf:
+        - $ref: '#/components/schemas/CommentInput'
+        - type: object
+          properties:
+            attachments:
+              type: array
+              description: "The images associated with the comment"
+              items:
+                $ref: '#/components/schemas/Attachment'
+          required:
+            - attachments
+    Location:
+      type: array
+      description: The location of the place associated with this post
+      items:
+        type: number
+        format: double
+        description: The coordinate
+      example: [55.753544, 37.621202]
+    Subscription:
+      type: object
+      description: The user subscription to another user posts
+      properties:
+        following_user_id:
+          type: string
+          description: id of the following user
+          format: uuid
+        followed_user_id:
+          type: string
+          description: id of the followed user
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+          description: The date the reaction has been created at
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        contentType:
+          type: string
+          example: "image"
+        url:
+          type: string
+          format: url
