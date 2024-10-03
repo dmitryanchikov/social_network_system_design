@@ -1,0 +1,16 @@
+// NoSQL: MongoDB
+// Replication:
+// - master-slave (async)
+// - replication factor 3
+//
+// Sharding:
+// - key based by user_id
+
+Table posts {
+  id uuid [primary key]
+  user_id uuid
+  title varchar
+  text text [note: 'Content of the post']
+  location_id uuid
+  created_at timestamp
+}

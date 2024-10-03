@@ -1,0 +1,16 @@
+// NoSQL: MongoDB
+// Replication:
+// - master-slave (async)
+// - replication factor 3
+//
+// Sharding:
+// - key based by post_id
+
+table reactions {
+  user_id uuid
+  id uuid [primary key]
+  post_id uuid
+  comment_id uuid
+  reaction_type integer
+  created_at timestamp
+}

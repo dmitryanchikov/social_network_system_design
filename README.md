@@ -46,9 +46,16 @@ System Design project for [System Design course](https://balun.courses/courses/s
      - images: 2 * 750 KB = 1.5 MB (blob storage)
    - api/traffic:
      - RPS: 1e7 * 1 / 86400 ~ 116
-     - peak RPS (100:1 ratio): 116 * 100 = 11 600  
+     - peak RPS (100:1 ratio): 116 * 100 = 11 600
      - write traffic: 11600 * 1.5 MB = 17.4 GB/s
      - peak write traffic: 1.74 TB/s
+   - storage:
+     - capacity per year: 17.4 GB/s * 86400 * 365 ~ 549 PB
+     - Disks for capacity (SSD NVMe): 549 PB / 20 TB ~ 27450
+     - Disks for (peak write + read) throughput (SSD NVMe): (1.74 TB/s + 2.6041 TB/s) / 3 GB/s = 1448
+     - Disks for (peak write + read) iops (SSD NVMe): (11 600 + 115 700) / 10000 = 13
+     - Total Disks (SSD NVMe 20 TB): max(27450, 1448, 13) = 27450
+     - Replication (x3) + 15%: 94702
 2. Reactions:
    - assumptions:
      - average post reactions per user per day: 10
@@ -75,6 +82,13 @@ System Design project for [System Design course](https://balun.courses/courses/s
        - peak RPS: 1157 * 100 = 115 700
        - traffic: 1157 * 100 B * 15 * 10 ~ 17.355 MB/s
        - peak traffic: ~ 1.736 GB/s
+   - storage:
+     - capacity per year: 115.7 KB/s * 86400 * 365 ~ 3.65 TB
+     - Disks for capacity (SSD NVMe): 3.65 TB / 6 TB ~ 1
+     - Disks for (peak write + read) throughput (SSD NVMe): (11.57 MB/s + 1.736 GB/s) / 3 GB/s = 1
+     - Disks for (peak write + read) iops (SSD NVMe): (115700 + 115700) / 10000 = 24
+     - Total Disks (SSD NVMe 20 TB): max(1, 1, 24) = 24
+     Replication (x3) + 15%: 83
 3. Comments:
    - assumptions:
      - average comments write count per user per day: 5
@@ -104,6 +118,13 @@ System Design project for [System Design course](https://balun.courses/courses/s
        - peak RPS: 1157 * 100 = 115 700
        - traffic: 1157 * 1 MB * 15 = 17.355 GB/s
        - peak traffic: 17.355 GB/s * 100 ~ 1.7355 TB/s
+   - storage:
+     - capacity per year: 579 MB/s * 86400 * 365 ~ 18.25 PB
+     - Disks for capacity (SSD NVMe): 18.25 PB / 20 TB = 913
+     - Disks for (peak write + read) throughput (SSD NVMe): (57.9 GB/s + 1.7355 TB/s) / 3 GB/s = 597
+     - Disks for (peak write + read) iops (SSD NVMe): (57 970 + 115 700) / 10000 = 18
+     - Total Disks (SSD NVMe 20 TB): max(913, 597, 18) = 913
+     - Replication (x3) + 15%: 3148
 4. Feed
     - assumptions:
       - average feed reads count per day: 10
