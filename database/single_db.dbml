@@ -1,0 +1,76 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table subscriptions {
+  following_user_id uuid
+  followed_user_id uuid
+  created_at timestamp
+}
+
+Table users {
+  id uuid [primary key]
+  username varchar
+  role varchar
+  created_at timestamp
+}
+
+Table posts {
+  id uuid [primary key]
+  user_id uuid
+  title varchar
+  text text [note: 'Content of the post']
+  location_id uuid
+  created_at timestamp
+}
+
+table reactions {
+  user_id uuid
+  id uuid [primary key]
+  post_id uuid
+  comment_id uuid
+  reaction_type integer
+  created_at timestamp
+}
+
+table comments {
+  id uuid [primary key]
+  user_id uuid
+  post_id uuid
+  comment_id uuid
+  created_at timestamp
+}
+
+table attachments {
+  id uuid [primary key]
+  user_id uuid
+  post_id uuid
+  comment_id uuid
+  url varchar
+  size int
+  created_at timestamp
+}
+
+Table locations {
+  id uuid [primary key]
+  created_at timestamp
+  geometry geometry
+}
+
+Table blob_storage {
+  data binary
+}
+
+Ref: posts.user_id > users.id // many-to-one
+Ref: users.id < subscriptions.following_user_id
+Ref: users.id < subscriptions.followed_user_id
+Ref: reactions.user_id > users.id
+Ref: comments.user_id > users.id
+Ref: reactions.post_id > posts.id
+Ref: comments.post_id > posts.id
+Ref: reactions.comment_id > comments.id
+Ref: comments.comment_id > comments.id
+Ref: attachments.user_id > users.id
+Ref: attachments.post_id > posts.id
+Ref: attachments.comment_id > comments.id
+Ref: posts.location_id > locations.id
+Ref: attachments.url > blob_storage.data
