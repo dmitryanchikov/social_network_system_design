@@ -1,3 +1,4 @@
+// SQL: PostgreSQL
 // Replication:
 // - master-slave (async)
 // - replication factor 3
