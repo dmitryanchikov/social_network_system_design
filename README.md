@@ -39,7 +39,7 @@ System Design project for [System Design course](https://balun.courses/courses/s
    - assumptions:
      - average post publishing count per day: 1
      - average 2 images per post
-   - request size (~2 KB metadata + ~1.5 MB images):
+   - request size (~2.5 KB metadata + ~1.5 MB images):
      - ~~userId: 16 B (uuid)~~ comes with auth
      - text: 2 KB (~1000 chars)
      - location: 48 B ([PostGIS Geometry/Geography](https://stackoverflow.com/questions/30455025/size-of-data-type-geographypoint-4326-in-postgis))
@@ -47,15 +47,87 @@ System Design project for [System Design course](https://balun.courses/courses/s
    - api/traffic:
      - RPS: 1e7 * 1 / 86400 ~ 116
      - peak RPS (100:1 ratio): 116 * 100 = 11 600
-     - write traffic: 11600 * 1.5 MB = 17.4 GB/s
-     - peak write traffic: 1.74 TB/s
+     - write traffic: 
+       - images: 11600 * 1.5 MB = 17.4 GB/s
+       - metadata: 11600 * 2.5 KB = 29 MB/s
+     - peak write traffic: 
+       - images: 1.74 TB/s
+       - metadata: 2.9 GB/s
    - storage:
-     - capacity per year: 17.4 GB/s * 86400 * 365 ~ 549 PB
-     - Disks for capacity (SSD NVMe): 549 PB / 20 TB ~ 27450
-     - Disks for (peak write + read) throughput (SSD NVMe): (1.74 TB/s + 2.6041 TB/s) / 3 GB/s = 1448
-     - Disks for (peak write + read) iops (SSD NVMe): (11 600 + 115 700) / 10000 = 13
-     - Total Disks (SSD NVMe 20 TB): max(27450, 1448, 13) = 27450
-     - Replication (x3) + 15%: 94702
+     - images:
+       - capacity per year: 17.4 GB/s * 86400 * 365 ~ 549 PB
+       - Tiered storage: 
+         - capacity distribution: SSD NVMe 15 GB 1% + SSD SATA 8 GB 9% + HDD 90% 16 TB disks
+         - traffic/RPS distribution: SSD NVMe 15 GB 30% + SSD SATA 8 GB 50% + HDD 20% 16 TB disks
+           - SSD NVMe:
+             - Data Volume, TB (SSD NVMe): 549000 TB * 1% = 5490.00 TB
+             - IOPS Load (SSD NVMe): 127300 IOPS * 30% = 38190.00 IOPS
+             - Throughput Load, GB/s (SSD NVMe): 4344 GB/s * 30% = 1303.20 GB/s
+             - Disks by Capacity: 5490.00 TB / 16 TB = 344 disks
+             - Disks by IOPS: 38190 IOPS / 10000 IOPS = 4 disks
+             - Disks by Throughput: 1303.20 GB/s / 3 GB/s = 435 disks
+             - Total Disks (maximum of the above): max(344, 4, 435) = 435 disks
+             - Disks with Replication + 15%: 435 * 3 + 15% = 1501 disks
+           - SSD SATA:
+             - Data Volume, TB (SSD SATA): 549000 TB * 9% = 49410.00 TB
+             - IOPS Load (SSD SATA): 127300 IOPS * 50% = 63650.00 IOPS
+             - Throughput Load, GB/s (SSD SATA): 4344 GB/s * 50% = 2172.00 GB/s
+             - Disks by Capacity: 49410.00 TB / 16 TB = 3089 disks
+             - Disks by IOPS: 63650 IOPS / 1000 IOPS = 64 disks
+             - Disks by Throughput: 2172.00 GB/s / 0.5 GB/s = 4344 disks
+             - Total Disks (maximum of the above): max(3089, 64, 4344) = 4344 disks
+             - Disks with Replication + 15%: 4344 * 3 + 15% = 14987 disks
+           - HDD:
+             - Data Volume, TB (HDD): 549000 TB * 90% = 494100.00 TB
+             - IOPS Load (HDD): 127300 IOPS * 20% = 25460.00 IOPS
+             - Throughput Load, GB/s (HDD): 4344 GB/s * 20% = 868.80 GB/s
+             - Disks by Capacity: 494100.00 TB / 20 TB = 24705 disks
+             - Disks by IOPS: 25460 IOPS / 100 IOPS = 255 disks
+             - Disks by Throughput: 868.80 GB/s / 0.1 GB/s = 8688 disks
+             - Total Disks (maximum of the above): max(24705, 255, 8688) = 24705 disks
+             - Disks with Replication + 15%: 24705 * 3 + 15% = 85232 disks
+       - Replication (x3) + 15%:
+         - Total Disks with Replication: 88452 disks
+         - SSD NVMe 16 TB: 1501
+         - SSD SATA 16 TB: 14987
+         - HDD 20 TB: 85232
+     - metadata:
+       - capacity per year: 29 MB/s * 86400 * 365 ~ 915 TB
+       - Tiered storage: 
+         - capacity distribution: SSD NVMe 4 GB 2% + SSD SATA 4 GB 28% + HDD 70% 10 TB disks
+         - traffic/RPS distribution: SSD NVMe 4 GB 40% + SSD SATA 4 GB 50% + HDD 10% 10 TB disks
+           - SSD NVMe:
+             - Data Volume, TB (SSD NVMe): 915 TB * 1% = 9.15 TB
+             - IOPS Load (SSD NVMe): 127300 IOPS * 30% = 38190.00 IOPS
+             - Throughput Load, GB/s (SSD NVMe): 7.24 GB/s * 30% = 2.17 GB/s
+             - Disks by Capacity: 9.15 TB / 2 TB = 5 disks
+             - Disks by IOPS: 38190 IOPS / 10000 IOPS = 4 disks
+             - Disks by Throughput: 2.17 GB/s / 3 GB/s = 1 disks
+             - Total Disks (maximum of the above): max(5, 4, 1) = 5 disks
+             - Disks with Replication + 15%: 5 * 3 + 15% = 17 disks
+           - SSD SATA:
+             - Data Volume, TB (SSD SATA): 915 TB * 9% = 82.35 TB
+             - IOPS Load (SSD SATA): 127300 IOPS * 50% = 63650.00 IOPS
+             - Throughput Load, GB/s (SSD SATA): 7.24 GB/s * 50% = 3.62 GB/s
+             - Disks by Capacity: 82.35 TB / 2 TB = 42 disks
+             - Disks by IOPS: 63650 IOPS / 1000 IOPS = 64 disks
+             - Disks by Throughput: 3.62 GB/s / 0.5 GB/s = 8 disks
+             - Total Disks (maximum of the above): max(42, 64, 8) = 64 disks
+             - Disks with Replication + 15%: 64 * 3 + 15% = 221 disks
+           - HDD:
+             - Data Volume, TB (HDD): 915 TB * 90% = 823.50 TB
+             - IOPS Load (HDD): 127300 IOPS * 20% = 25460.00 IOPS
+             - Throughput Load, GB/s (HDD): 7.24 GB/s * 20% = 1.45 GB/s
+             - Disks by Capacity: 823.50 TB / 4 TB = 206 disks
+             - Disks by IOPS: 25460 IOPS / 100 IOPS = 255 disks
+             - Disks by Throughput: 1.45 GB/s / 0.1 GB/s = 15 disks
+             - Total Disks (maximum of the above): max(206, 255, 15) = 255 disks
+             - Disks with Replication + 15%: 255 * 3 + 15% = 880 disks 
+       - Replication (x3) + 15%:
+         - Total Disks with Replication: 972 disks
+         - SSD NVMe 2 TB: 17
+         - SSD SATA 2 TB: 221
+         - HDD 4 TB: 880
 2. Reactions:
    - assumptions:
      - average post reactions per user per day: 10
@@ -84,11 +156,11 @@ System Design project for [System Design course](https://balun.courses/courses/s
        - peak traffic: ~ 1.736 GB/s
    - storage:
      - capacity per year: 115.7 KB/s * 86400 * 365 ~ 3.65 TB
-     - Disks for capacity (SSD NVMe): 3.65 TB / 6 TB ~ 1
-     - Disks for (peak write + read) throughput (SSD NVMe): (11.57 MB/s + 1.736 GB/s) / 3 GB/s = 1
-     - Disks for (peak write + read) iops (SSD NVMe): (115700 + 115700) / 10000 = 24
-     - Total Disks (SSD NVMe 20 TB): max(1, 1, 24) = 24
-     Replication (x3) + 15%: 83
+     - Disks for capacity (SSD SATA): 3.65 TB / 1 TB ~ 4
+     - Disks for (peak write + read) throughput (SSD SATA): (11.57 MB/s + 1.736 GB/s) / 1 GB/s = 2
+     - Disks for (peak write + read) iops (SSD SATA): (115700 + 115700) / 1000 = 24
+     - Total disks: max(2, 4, 24) = 24
+     - Replication x3 + 15%: 24 * 3 + 15% ~ 83
 3. Comments:
    - assumptions:
      - average comments write count per user per day: 5
@@ -96,11 +168,11 @@ System Design project for [System Design course](https://balun.courses/courses/s
      - average comments batch size per read: 15
      - average images per comment: 1
    - request size:
-     - write ~ 1 MB:
+     - write (~0.75 MB images + ~2 KB metadata):
        - text: 1 KB (~500 chars)
        - postId: 8 B (uuid)
        - image: 1 * 750 KB = 0.75 MB (blob storage)
-     - read per comment ~ 1 MB:
+     - read per comment (~0.75 MB images + ~2 KB metadata):
        - text: 1 KB
        - userId: 8 B
        - postId: 8 B
@@ -109,22 +181,98 @@ System Design project for [System Design course](https://balun.courses/courses/s
        - image: 0.75 MB
    - api/traffic:
      - write:
-       - RPS: 1e7 * 5 / 86400 = 579
+       - RPS: 1e7 * 5 / 86400 = 580
        - peak RPS: 57 970
-       - traffic: 579 * 1 MB ~ 579 MB/s
-       - peak traffic: 57.9 GB/s
+       - traffic: 
+         - images: 580 * 0.75 MB ~ 435 MB/s
+         - metadata: 580 * 2 KB/s ~ 1.16 MB/s
+       - peak traffic: 
+         - images: 43.5 GB/s
+         - metadata: 116 MB/s
      - read:
        - RPS: 1e7 * 10 / 86400 = 1 157
        - peak RPS: 1157 * 100 = 115 700
-       - traffic: 1157 * 1 MB * 15 = 17.355 GB/s
-       - peak traffic: 17.355 GB/s * 100 ~ 1.7355 TB/s
+       - traffic: 
+         - images: 1157 * 0.75 MB * 15 ~ 13.016 GB/s
+         - metadata: 1157 * 2 KB * 15 ~ 34.71 MB/s
+       - peak traffic: 
+         - images: 13.016 GB/s * 100 ~ 1.302 TB/s
+         - metadata: 34.71 MB/s * 100 ~ 3.471 GB/s
    - storage:
-     - capacity per year: 579 MB/s * 86400 * 365 ~ 18.25 PB
-     - Disks for capacity (SSD NVMe): 18.25 PB / 20 TB = 913
-     - Disks for (peak write + read) throughput (SSD NVMe): (57.9 GB/s + 1.7355 TB/s) / 3 GB/s = 597
-     - Disks for (peak write + read) iops (SSD NVMe): (57 970 + 115 700) / 10000 = 18
-     - Total Disks (SSD NVMe 20 TB): max(913, 597, 18) = 913
-     - Replication (x3) + 15%: 3148
+     - images:
+       - capacity per year: 435 MB/s * 86400 * 365 ~ 13.718 PB
+       - Tiered storage:
+         - capacity distribution: SSD NVMe 1 GB 5% + SSD SATA 1 GB 15% + HDD 80% 1 TB disks
+         - traffic/RPS distribution: SSD NVMe 1 GB 40% + SSD SATA 1 GB 40% + HDD 20% 1 TB disks
+           - SSD NVMe:
+              - Data Volume, TB (SSD NVMe): 13718 TB * 5% = 685.90 TB
+              - IOPS Load (SSD NVMe): 173600 IOPS * 40% = 69440.00 IOPS
+              - Throughput Load, GB/s (SSD NVMe): 1345 GB/s * 40% = 538.00 GB/s
+              - Disks by Capacity: 685.90 TB / 4 TB = 172 disks
+              - Disks by IOPS: 69440 IOPS / 10000 IOPS = 7 disks
+              - Disks by Throughput: 538.00 GB/s / 3 GB/s = 180 disks
+              - Total Disks (maximum of the above): max(172, 7, 180) = 180 disks
+              - Disks with Replication + 15%: 180 * 3 + 15% = 621 disks
+           - SSD SATA:
+             - Data Volume, TB (SSD SATA): 13718 TB * 15% = 2057.70 TB
+             - IOPS Load (SSD SATA): 173600 IOPS * 40% = 69440.00 IOPS
+             - Throughput Load, GB/s (SSD SATA): 1345 GB/s * 40% = 538.00 GB/s
+             - Disks by Capacity: 2057.70 TB / 2 TB = 1029 disks
+             - Disks by IOPS: 69440 IOPS / 1000 IOPS = 70 disks
+             - Disks by Throughput: 538.00 GB/s / 0.5 GB/s = 1076 disks
+             - Total Disks (maximum of the above): max(1029, 70, 1076) = 1076 disks
+             - Disks with Replication + 15%: 1076 * 3 + 15% = 3712 disks
+           - HDD:
+             - Data Volume, TB (HDD): 13718 TB * 80% = 10974.40 TB
+             - IOPS Load (HDD): 173600 IOPS * 20% = 34720.00 IOPS
+             - Throughput Load, GB/s (HDD): 1345 GB/s * 20% = 269.00 GB/s
+             - Disks by Capacity: 10974.40 TB / 4 TB = 2744 disks
+             - Disks by IOPS: 34720 IOPS / 100 IOPS = 348 disks
+             - Disks by Throughput: 269.00 GB/s / 0.1 GB/s = 2690 disks
+             - Total Disks (maximum of the above): max(2744, 348, 2690) = 2744 disks
+             - Disks with Replication + 15%: 2744 * 3 + 15% = 9467 disks
+       - Replication (x3) + 15%:
+         - Total Disks with Replication: 12000 disks
+         - SSD NVMe 4 TB: 621
+         - SSD SATA 2 TB: 3712
+         - HDD 4 TB: 9467
+     - metadata:
+       - capacity per year: 1.16 MB/s * 86400 * 365 ~ 36.582 TB
+       - Tiered storage:
+         - capacity distribution: SSD NVMe 1 GB 5% + SSD SATA 1 GB 15% + HDD 80% 1 TB disks
+         - traffic/RPS distribution: SSD NVMe 1 GB 50% + SSD SATA 1 GB 40% + HDD 10% 1 TB disks
+           - SSD NVMe:
+             - Data Volume, TB (SSD NVMe): 36.582 TB * 5% = 1.83 TB
+             - IOPS Load (SSD NVMe): 173600 IOPS * 50% = 86800.00 IOPS
+             - Throughput Load, GB/s (SSD NVMe): 3.587 GB/s * 50% = 1.79 GB/s
+             - Disks by Capacity: 1.83 TB / 1 TB = 2 disks
+             - Disks by IOPS: 86800 IOPS / 10000 IOPS = 9 disks
+             - Disks by Throughput: 1.79 GB/s / 3 GB/s = 1 disks
+             - Total Disks (maximum of the above): max(2, 9, 1) = 9 disks
+             - Disks with Replication + 15%: 9 * 3 + 15% = 31 disks
+           - SSD SATA:
+             - Data Volume, TB (SSD SATA): 36.582 TB * 15% = 5.49 TB
+             - IOPS Load (SSD SATA): 173600 IOPS * 40% = 69440.00 IOPS
+             - Throughput Load, GB/s (SSD SATA): 3.587 GB/s * 40% = 1.43 GB/s
+             - Disks by Capacity: 5.49 TB / 1 TB = 6 disks
+             - Disks by IOPS: 69440 IOPS / 1000 IOPS = 70 disks
+             - Disks by Throughput: 1.43 GB/s / 0.5 GB/s = 3 disks
+             - Total Disks (maximum of the above): max(6, 70, 3) = 70 disks
+             - Disks with Replication + 15%: 70 * 3 + 15% = 241 disks
+           - HDD:
+             - Data Volume, TB (HDD): 36.582 TB * 80% = 29.27 TB
+             - IOPS Load (HDD): 173600 IOPS * 10% = 17360.00 IOPS
+             - Throughput Load, GB/s (HDD): 3.587 GB/s * 10% = 0.36 GB/s
+             - Disks by Capacity: 29.27 TB / 1 TB = 30 disks
+             - Disks by IOPS: 17360 IOPS / 100 IOPS = 174 disks
+             - Disks by Throughput: 0.36 GB/s / 0.1 GB/s = 4 disks
+             - Total Disks (maximum of the above): max(30, 174, 4) = 174 disks
+             - Disks with Replication + 15%: 174 * 3 + 15% = 600 disks
+         - Replication (x3) + 15%:
+           - Total Disks with Replication: 759 disks
+           - SSD NVMe 1 TB: 31
+           - SSD SATA 1 TB: 241
+           - HDD 1 TB: 600
 4. Feed
     - assumptions:
       - average feed reads count per day: 10
@@ -139,5 +287,9 @@ System Design project for [System Design course](https://balun.courses/courses/s
     - api/traffic:
        - RPS: 1e7 * 10 / 86400 = 1 157
        - peak RPS: 1157 * 100 = 115 700
-       - traffic: 1157 * 1.5 MB * 15 = 26.041 GB/s
-       - peak traffic: 26.041 GB/s * 100 ~ 2.6041 TB/s
+       - traffic: 
+         - images: 1157 * 1.5 MB * 15 = 26.041 GB/s
+         - metadata: 1157 * 2.5 KB * 15 = 43.4 MB/s
+       - peak traffic: 
+         - images: 26.041 GB/s * 100 ~ 2.6041 TB/s
+         - metadata: 43.4 MB/s * 100 ~ 4.34 GB/s

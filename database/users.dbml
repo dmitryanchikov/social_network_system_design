@@ -9,6 +9,5 @@
 Table users {
   id uuid [primary key]
   username varchar
-  role varchar
   created_at timestamp
 }

@@ -6,12 +6,11 @@
 // Sharding:
 // - key based by post_id
 
-table attachments {
-  id uuid [primary key]
+table post_reactions {
   user_id uuid
+  id uuid [primary key]
   post_id uuid
   comment_id uuid
-  url varchar
-  size int
+  reaction_type integer
   created_at timestamp
 }
