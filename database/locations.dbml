@@ -1,0 +1,12 @@
+// SQL: PostgreSQL
+// Replication:
+// - master-slave (async)
+// - replication factor 3
+//
+// No sharding - calculation in PostGIS
+
+Table locations {
+  id uuid [primary key]
+  created_at timestamp
+  geometry geometry
+}

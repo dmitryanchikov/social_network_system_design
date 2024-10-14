@@ -1,0 +1,27 @@
+// Replication:
+// - master-slave (async)
+// - replication factor 3
+//
+// Sharding:
+// - key based by post_id
+
+table comments {
+  id uuid [primary key]
+  user_id uuid
+  post_id uuid
+  reply_comment_id uuid
+  created_at timestamp
+  attachments array
+}
+
+table attachments {
+  id uuid [primary key]
+  user_id uuid
+  post_id uuid
+  comment_id uuid
+  url varchar
+  size int
+  created_at timestamp
+}
+
+Ref: attachments.comment_id > comments.id
