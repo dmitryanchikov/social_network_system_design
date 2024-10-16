@@ -5,6 +5,7 @@
 //
 // Sharding:
 // - key based by following_user_id
+// - consistent hashing + virtual shards
 
 Table subscriptions {
   following_user_id uuid

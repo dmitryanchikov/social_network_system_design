@@ -93,6 +93,8 @@ System Design project for [System Design course](https://balun.courses/courses/s
            - SSD NVMe 16 TB: 1501
            - SSD SATA 16 TB: 9991
            - HDD 20 TB: 56822
+         - Hosts calculation (includes replication): 1 host 2 disks
+           - total: (1501 + 9991 + 56822) / 2 ~ 34157
      - metadata:
        - capacity per year: 29 MB/s * 86400 * 365 ~ 915 TB
        - Tiered storage: 
@@ -132,6 +134,8 @@ System Design project for [System Design course](https://balun.courses/courses/s
            - SSD NVMe 2 TB: 17
            - SSD SATA 2 TB: 221
            - HDD 4 TB: 587
+         - Hosts calculation (includes replication): 1 host 2 disks
+           - total: (17 + 221 + 587) / 2 ~ 413
 2. Reactions:
    - assumptions:
      - average post reactions per user per day: 10
@@ -165,6 +169,8 @@ System Design project for [System Design course](https://balun.courses/courses/s
      - Disks for (peak write + read) iops (SSD SATA): (115700 + 115700) / 1000 = 24
      - Total disks: max(2, 4, 24) = 24
      - Replication x3 + 15%: 24 * 3 + 15% ~ 83
+     - Hosts calculation (includes replication): 1 host 2 disks
+       - total: 83 / 2 ~ 42
 3. Comments:
    - assumptions:
      - average comments write count per user per day: 5
@@ -242,6 +248,8 @@ System Design project for [System Design course](https://balun.courses/courses/s
            - SSD NVMe 4 TB: 621
            - SSD SATA 2 TB: 2475
            - HDD 4 TB: 6311
+         - Hosts calculation (includes replication): 1 host 2 disks
+           - total: (621 + 2475 + 6311) / 2 ~ 4704
      - metadata:
        - capacity per year: 1.16 MB/s * 86400 * 365 ~ 36.582 TB
        - Tiered storage:
@@ -281,6 +289,8 @@ System Design project for [System Design course](https://balun.courses/courses/s
              - SSD NVMe 1 TB: 31
              - SSD SATA 1 TB: 241
              - HDD 1 TB: 400
+         - Hosts calculation (includes replication): 1 host 2 disks
+           - total: (31 + 241 + 400) / 2 ~ 336
 4. Feed
     - assumptions:
       - average feed reads count per day: 10
