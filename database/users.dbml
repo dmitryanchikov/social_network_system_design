@@ -4,7 +4,8 @@
 // - replication factor 3
 //
 // Sharding:
-// - key based by id
+// - key based by user id
+// - consistent hashing + virtual shards
 
 Table users {
   id uuid [primary key]

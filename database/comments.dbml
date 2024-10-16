@@ -1,9 +1,11 @@
+// NoSQL: MongoDB
 // Replication:
 // - master-slave (async)
-// - replication factor 3
+// - replication factor: 3 for hot and warm storage and 2 for cold storage
 //
 // Sharding:
 // - key based by post_id
+// - consistent hashing + virtual shards
 
 table comments {
   id uuid [primary key]
@@ -11,7 +13,7 @@ table comments {
   post_id uuid
   reply_comment_id uuid
   created_at timestamp
-  attachments array
+  attachments array  // denormalizing for quick access
 }
 
 table attachments {
