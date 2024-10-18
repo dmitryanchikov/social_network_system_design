@@ -1,10 +1,10 @@
 // NoSQL: MongoDB
 // Replication:
 // - master-slave (async)
-// - replication factor 3
+// - replication factor: 3
 //
 // Sharding:
-// - key based by user_id
+// - key based on user_id
 
 Table posts {
   id uuid [primary key]
@@ -13,7 +13,7 @@ Table posts {
   text text [note: 'Content of the post']
   location_id uuid
   created_at timestamp
-  attachment_urls array
+  attachment_urls array  // de-normalizing for quick access to attachments
   comment_ids array  // de-normalizing for quick access to comments and reactions
 }
 
