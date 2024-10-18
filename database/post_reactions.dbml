@@ -5,7 +5,6 @@
 //
 // Sharding:
 // - key based by post_id
-// - consistent hashing + virtual shards
 
 table post_reactions {
   user_id uuid

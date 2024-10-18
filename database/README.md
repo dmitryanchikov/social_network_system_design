@@ -23,5 +23,5 @@ it's a tradeoff for satisfying nonfunctional requirement of eventual consistency
 - Cold data on HDD disks for old data and mostly irrelevant but kept for historical purposes, minor traffic load
 
 Mostly the data will be stored in object storage rather than SQL/NoSQL DB:
-- Object storage: 463 PB, 99.8%
-- SQL/NoSQL DBs: 955 TB, 0.2%
+- Object storage: 19.2 PB, 99.75%
+- SQL/NoSQL DBs: 49 TB, 0.25%

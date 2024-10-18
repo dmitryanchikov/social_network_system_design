@@ -1,11 +1,10 @@
 // NoSQL: MongoDB
 // Replication:
 // - master-slave (async)
-// - replication factor: 3 for hot and warm storage and 2 for cold storage
+// - replication factor: 3
 //
 // Sharding:
 // - key based by post_id
-// - consistent hashing + virtual shards
 
 table comments {
   id uuid [primary key]
