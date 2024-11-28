@@ -1,8 +1,17 @@
 # Social Network - System Design
 System Design project for [System Design course](https://balun.courses/courses/system_design)
 
+* **Table of contents:**
+    * [Functional & Non-Functional requirements](#requirements)
+    * [Load/resources calculations by subsystems](#calculations)
+    * [Swagger file](api/rest_api.yml)
+    * [Database description](database/README.md)
+    * [Distributed storage specs](database)
+    * [System design diagrams](#diagrams)
 
 ### Functional requirements:
+<a id="requirements"></a>
+
 - post publishing from traveling with photos, small description and location
 - post reactions and commenting
 - subscribing and notifications
@@ -35,6 +44,7 @@ System Design project for [System Design course](https://balun.courses/courses/s
 
 
 ### Calculations:
+<a id="calculations"></a>
 1. Posts:
    - assumptions:
      - average post publishing count per day: 1
@@ -262,3 +272,18 @@ System Design project for [System Design course](https://balun.courses/courses/s
            - **SSD NVMe 8 TB: 12**: 18
          - Hosts calculation (includes replication): 1 host 2 disks
            - total: 18 / 2 ~ 9
+
+
+## System design diagrams
+<a id="diagrams"></a>
+Architecture diagrams are built following [C4 model](https://c4model.com/) approach using [C4-PlantUML](https://github.com/plantuml-stdlib/C4-PlantUML).
+
+Context level (C1):
+<p align="center">
+  <img src="design/C4_Context.png" />
+</p>
+
+Container level (C2):
+<p align="center">
+  <img src="design/C4_Containers.png" />
+</p>

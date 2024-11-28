@@ -1,0 +1,72 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User", "requests/submits the data")
+Container(gateway, "API Gateway", "Go", "proxies requests, balances the load")
+System(cdn, "CDN", "delivers content to end users")
+Container(auth, "Auth Service", "authenticates, authorizes the user and controls access management")
+Container(messageBus, "Message Bus", "Kafka", "Transport for business events")
+
+System_Boundary(c0, "Object Storage"){
+    ContainerDb(objectStorage, "Object Storage", "S3", "stores media")
+    Container(mediaInfra, "Media Infra Service", "Go", "compresses, cleanes data async")
+}
+System_Boundary(c1, "Posts service"){
+    Container(postsService, "Posts Service", "Go", "handles posts")
+    ContainerDb(postsDb, "Posts Metadata Storage", "MongoDB", "stores posts metadata")
+}
+System_Boundary(c2, "Reactions service"){
+    Container(reactionsService, "Reactions Service", "Go", "handles reactions")
+    ContainerDb(reactionsDb, "Reactions Storage", "MongoDB", "stores reactions metadata")
+}
+System_Boundary(c3, "Comments service"){
+    Container(commentsService, "Comments Service", "Go", "handles comments")
+    ContainerDb(commentsDb, "Comments Storage", "MongoDB", "stores comments metadata")
+}
+System_Boundary(c4, "Feed service"){
+    Container(feedReader, "Feed Reader Service", "Go", "handles user feed read requests")
+    Container(feedBuilder, "Feed Builder Service", "Go", "builds user feed async")
+    ContainerDb(feedDb, "Feed DB", "redis", "stores feed metadata")
+}
+System_Boundary(c5, "Locations service"){
+    Container(locationService, "Locations Service", "Go", "handles locations")
+    ContainerDb(locationsDb, "Locations Storage", "PgSQL + PostGIS", "stores locations data")
+}
+System_Boundary(c6, "User Subscription service"){
+    Container(subscriptionService, "Subscriptions Service", "Go", "handles user subscriptions")
+    ContainerDb(subscriptionDb, "Subscriptions Storage", "MongoDB", "stores subscriptions data")
+}
+
+Rel(user, cdn, "gets media data", "HTTPS")
+Rel(user, gateway, "requests", "HTTPS")
+Rel(cdn, gateway, "pulls media data on misses", "HTTPS")
+Rel_R(gateway, auth, "validates the requests", "h2")
+Rel(gateway, objectStorage, "proxies the requests", "h2")
+Rel(gateway, postsService, "serves posts", "h2")
+Rel(gateway, reactionsService, "serves reactions", "h2")
+Rel(gateway, commentsService, "serves comments", "h2")
+Rel(gateway, feedReader, "serves user feed", "h2")
+Rel(gateway, subscriptionService, "serves user subscriptions", "h2")
+
+Rel_D(postsService, locationService, "notifies about locations", "h2")
+Rel_D(commentsService, messageBus, "notifies about post comments")
+Rel(messageBus, postsService, "notifies about post comments")
+Rel_D(subscriptionService, messageBus, "notifies about subscriptions")
+Rel(messageBus, feedBuilder, "notifies about post subscriptions")
+
+Rel_D(postsService, postsDb, "transfers metadata", "h2")
+Rel_D(commentsService, commentsDb, "transfers metadata", "h2")
+Rel_D(reactionsService, reactionsDb, "transfers metadata", "h2")
+Rel_D(feedReader, feedDb, "transfers metadata", "h2")
+Rel_D(feedBuilder, feedDb, "transfers metadata", "h2")
+Rel_D(locationService, locationsDb, "transfers metadata", "h2")
+Rel_D(subscriptionService, subscriptionDb, "transfers metadata", "h2")
+Rel_D(mediaInfra, objectStorage, "process media", "h2")
+
+Rel(feedBuilder, postsService, "retrieves posts", "h2")
+Rel(feedBuilder, reactionsService, "retrieves reactions per posts", "h2")
+Rel(feedBuilder, locationService, "retrieves locations", "h2")
+Rel(feedBuilder, subscriptionService, "retrieves locations", "h2")
+
+SHOW_LEGEND()
+@enduml

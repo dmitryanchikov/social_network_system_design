@@ -1,0 +1,25 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(user, "User", "requests/submits the data")
+System(cdn, "CDN", "delivers content to end users")
+System_Boundary(c1, "Social Network System"){
+    System(gateway, "API Gateway", "proxies requests, balances the load")
+    System(auth, "Auth Service", "authenticates, authorizes the user and controls access management")
+    System(socialNetworkAPI, "Social Network", "handles requests, stores and manipulates the data")
+    SystemDb(objectStorage, "Object Storage", "stores media data")
+    SystemDb(metadataStorage, "Metadata Storage", "stores metadata")
+}
+
+Rel(user, gateway, "requests", "HTTPS")
+BiRel_left(user, cdn, "gets media data", "HTTPS")
+Rel(cdn, gateway, "pulls media data on misses", "HTTPS")
+Rel(gateway, auth, "validates the requests", "h2")
+Rel(gateway, socialNetworkAPI, "proxies the requests", "h2")
+Rel(socialNetworkAPI, auth, "checks user rights", "h2")
+Rel(gateway, objectStorage, "proxies the requests", "h2")
+Rel(socialNetworkAPI, objectStorage, "stores media data", "h2")
+Rel(socialNetworkAPI, metadataStorage, "stores and reads metadata", "h2")
+
+SHOW_LEGEND()
+@enduml
